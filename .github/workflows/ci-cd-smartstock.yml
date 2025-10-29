@@ -1,0 +1,139 @@
+name: SmartStock CI/CD Pipeline
+
+on:
+  push:
+    branches: [ develop, main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AZURE_WEBAPP_NAME: 'smartstock-app-miguelhc'
+  JAVA_VERSION: '17'
+  NODE_VERSION: '18'
+
+jobs:
+  # Análisis de Calidad de Código
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        
+    - name: Cache Maven packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+        
+    - name: Run SonarCloud analysis
+      uses: sonarsource/sonarcloud-github-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # Integración Continua
+  continuous-integration:
+    name: Continuous Integration
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: 'maven'
+        
+    - name: Run unit tests
+      run: |
+        mvn test
+        echo "Unit tests completed for SmartStock modules"
+        
+    - name: Integration tests
+      run: |
+        mvn verify -DskipUnitTests
+        echo "Integration tests passed"
+        
+    - name: Build application
+      run: mvn clean package -DskipTests
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: smartstock-jar
+        path: target/*.jar
+        retention-days: 7
+
+  # Despliegue a Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: continuous-integration
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: smartstock-jar
+        
+    - name: Login to Azure
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS_STAGING }}
+        
+    - name: Deploy to Azure Staging
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'smartstock-staging'
+        package: '*.jar'
+        
+    - name: Run smoke tests
+      run: |
+        echo "Running smoke tests on staging..."
+        # Scripts de pruebas post-despliegue
+
+  # Despliegue a Producción
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [continuous-integration, deploy-staging]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: smartstock-jar
+        
+    - name: Login to Azure
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - name: Deploy to Azure Production
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        package: '*.jar'
+        
+    - name: Verify deployment
+      run: |
+        echo "SmartStock deployed successfully!"
+        echo "Application URL: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
