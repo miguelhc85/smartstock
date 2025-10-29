@@ -1,0 +1,10 @@
+environments:
+  staging:
+    deployment-branch: develop
+    url: https://smartstock-staging.azurewebsites.net
+    custom_domain: staging.smartstock.com
+    
+  production:
+    deployment-branch: main  
+    url: https://smartstock-app-miguelhc.azurewebsites.net
+    custom_domain: app.smartstock.com
