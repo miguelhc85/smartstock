@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Venta - SmartStock</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+	
+	<!-- Navbar -->
+		    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+		        <div class="container">
+		            <a class="navbar-brand" th:href="@{/dashboard}">SmartStock</a>
+		            <div class="collapse navbar-collapse">
+		                <ul class="navbar-nav me-auto">
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/dashboard}">Dashboard</a></li>
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/productos}">Productos</a></li>
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/categorias}">Categorías</a></li>
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/marcas}">Marcas</a></li>
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/proveedores}">Proveedores</a></li>
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/ventas}">Ventas</a></li>
+		                </ul>
+		                <form th:action="@{/logout}" method="post" class="d-inline">
+		                    <button type="submit" class="btn btn-outline-light btn-sm">Cerrar Sesión</button>
+		                </form>
+		            </div>
+		        </div>
+		    </nav>
+	
+    <div layout:fragment="content">
+        <!-- Alertas -->
+        <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${param.success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1>Detalle de Venta</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}">Inicio</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/ventas}">Ventas</a></li>
+                        <li class="breadcrumb-item active" aria-current="page" th:text="${venta.numeroVenta}">Detalle</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/ventas}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Volver a Ventas
+                </a>
+                <button class="btn btn-outline-primary" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i> Imprimir
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Información de la Venta -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-receipt me-2"></i>Información de la Venta
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Número de Venta:</strong><br>
+                                <span class="badge bg-primary fs-6" th:text="${venta.numeroVenta}"></span></p>
+                                
+                                <p><strong>Fecha:</strong><br>
+                                <span th:text="${#temporals.format(venta.fechaVenta, 'dd/MM/yyyy HH:mm')}"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Estado:</strong><br>
+                                <span th:if="${venta.estado == 'ACTIVA'}" class="badge bg-success" th:text="${venta.estado}"></span>
+                                <span th:if="${venta.estado == 'ANULADA'}" class="badge bg-danger" th:text="${venta.estado}"></span>
+                                <span th:if="${venta.estado == null}" class="badge bg-secondary">ACTIVA</span></p>
+                                
+                                <p><strong>Total:</strong><br>
+                                <span class="h5 text-success" th:text="'S/ ' + ${#numbers.formatDecimal(venta.total, 1, 2)}"></span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <p><strong>Cliente:</strong><br>
+                            <span th:if="${venta.cliente}" th:text="${venta.cliente}"></span>
+                            <span th:unless="${venta.cliente}" class="text-muted fst-italic">Cliente no especificado</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-cogs me-2"></i>Acciones
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/ventas/nueva}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i> Nueva Venta
+                            </a>
+                            <div th:if="${venta.estado == null || venta.estado == 'ACTIVA'}">
+                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#anularModal">
+                                    <i class="fas fa-ban me-2"></i> Anular Venta
+                                </button>
+                            </div>
+                            <div th:if="${venta.estado == 'ANULADA'}" class="alert alert-warning mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Esta venta ha sido anulada
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos Vendidos -->
+        <div class="card mt-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-boxes me-2"></i>Productos Vendidos
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Producto</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-end">Precio Unitario</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="detalle, stat : ${venta.detalles}">
+                                <td th:text="${stat.count}"></td>
+                                <td>
+                                    <strong th:text="${detalle.producto.nombre}"></strong>
+                                    <br>
+                                    <small class="text-muted" th:text="${detalle.producto.codigo} ? 'Código: ' + ${detalle.producto.codigo} : ''"></small>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary fs-6" th:text="${detalle.cantidad}"></span>
+                                </td>
+                                <td class="text-end" th:text="'S/ ' + ${#numbers.formatDecimal(detalle.precio, 1, 2)}"></td>
+                                <td class="text-end" th:text="'S/ ' + ${#numbers.formatDecimal(detalle.subtotal, 1, 2)}"></td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(venta.detalles)}">
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                                    <p>No hay productos en esta venta</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="table-success">
+                            <tr>
+                                <td colspan="3"></td>
+                                <td class="text-end"><strong>Total:</strong></td>
+                                <td class="text-end">
+                                    <strong class="h5" th:text="'S/ ' + ${#numbers.formatDecimal(venta.total, 1, 2)}"></strong>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información Adicional -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Información Adicional
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Vendedor:</strong> Sistema SmartStock</p>
+                        <p><strong>Método de Pago:</strong> 
+                            <span th:if="${venta.metodoPago}" th:text="${venta.metodoPago}"></span>
+                            <span th:unless="${venta.metodoPago}" class="text-muted">No especificado</span>
+                        </p>
+                        <p><strong>Observaciones:</strong><br>
+                            <span th:if="${venta.observaciones}" th:text="${venta.observaciones}"></span>
+                            <span th:unless="${venta.observaciones}" class="text-muted fst-italic">Sin observaciones</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Anulación -->
+    <div class="modal fade" id="anularModal" tabindex="-1" aria-labelledby="anularModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="anularModalLabel">Confirmar Anulación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro de anular la venta <strong th:text="${venta.numeroVenta}"></strong>?</p>
+                    <p class="text-danger small">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Esta acción revertirá el stock de los productos y no se puede deshacer.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <a th:href="@{/ventas/anular/{id}(id=${venta.id})}" class="btn btn-danger">
+                        <i class="fas fa-ban me-2"></i> Anular Venta
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    
+    <!-- Script para auto-cierre de alertas -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-ocultar alertas después de 5 segundos
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    if (alert) {
+                        const bsAlert = new bootstrap.Alert(alert);
+                        bsAlert.close();
+                    }
+                }, 5000);
+            });
+        });
+    </script>
+</body>
+</html>

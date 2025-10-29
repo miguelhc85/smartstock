@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Detalle Producto - SmartStock</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Detalle del Producto</h1>
+            <a th:href="@{/productos}" class="btn btn-secondary">Volver a Productos</a>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Información del Producto</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Código:</strong>
+                                <p th:text="${producto.codigo}" class="form-control-plaintext"></p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Nombre:</strong>
+                                <p th:text="${producto.nombre}" class="form-control-plaintext"></p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Categoría:</strong>
+                                <p th:text="${producto.categoria.nombre}" class="form-control-plaintext"></p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Marca:</strong>
+                                <p th:text="${producto.marca.nombre}" class="form-control-plaintext"></p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Precio:</strong>
+                                <p th:text="'S/ ' + ${#numbers.formatDecimal(producto.precio, 1, 2)}" 
+                                   class="form-control-plaintext"></p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Proveedor:</strong>
+                                <p th:text="${producto.proveedor.nombre}" class="form-control-plaintext"></p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Stock Actual:</strong>
+                                <span th:if="${producto.stock > producto.stockMinimo}" 
+                                      th:text="${producto.stock}" 
+                                      class="badge bg-success fs-6"></span>
+                                <span th:if="${producto.stock <= producto.stockMinimo && producto.stock > 0}" 
+                                      th:text="${producto.stock}" 
+                                      class="badge bg-warning fs-6"></span>
+                                <span th:if="${producto.stock == 0}" 
+                                      th:text="${producto.stock}" 
+                                      class="badge bg-danger fs-6"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Stock Mínimo:</strong>
+                                <p th:text="${producto.stockMinimo}" class="form-control-plaintext"></p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Descripción:</strong>
+                            <p th:text="${producto.descripcion} ?: 'Sin descripción'" 
+                               class="form-control-plaintext"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Acciones</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/productos/editar/{id}(id=${producto.id})}" 
+                               class="btn btn-primary">Editar Producto</a>
+                            <a th:href="@{/productos/eliminar/{id}(id=${producto.id})}" 
+                               class="btn btn-danger"
+                               onclick="return confirm('¿Está seguro de eliminar este producto?')">Eliminar Producto</a>
+                            <a th:href="@{/ventas/nueva}" class="btn btn-success">Realizar Venta</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Estado del Inventario</h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${producto.stock > producto.stockMinimo}" 
+                             class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> Stock suficiente
+                        </div>
+                        <div th:if="${producto.stock <= producto.stockMinimo && producto.stock > 0}" 
+                             class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> Stock bajo
+                        </div>
+                        <div th:if="${producto.stock == 0}" 
+                             class="alert alert-danger">
+                            <i class="fas fa-times-circle"></i> Sin stock
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

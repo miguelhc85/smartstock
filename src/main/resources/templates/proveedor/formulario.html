@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${proveedor.id} ? 'Editar ' + ${proveedor.nombre} : 'Nuevo Proveedor'">Proveedor</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+	
+	<!-- Navbar -->
+		    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+		        <div class="container">
+		            <a class="navbar-brand" th:href="@{/dashboard}">SmartStock</a>
+		            <div class="collapse navbar-collapse">
+		                <ul class="navbar-nav me-auto">
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/dashboard}">Dashboard</a></li>
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/productos}">Productos</a></li>
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/categorias}">Categorías</a></li>
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/marcas}">Marcas</a></li>
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/proveedores}">Proveedores</a></li>
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/ventas}">Ventas</a></li>
+		                </ul>
+		                <form th:action="@{/logout}" method="post" class="d-inline">
+		                    <button type="submit" class="btn btn-outline-light btn-sm">Cerrar Sesión</button>
+		                </form>
+		            </div>
+		        </div>
+		    </nav>
+	
+    <div layout:fragment="content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 th:text="${proveedor.id} ? 'Editar ' + ${proveedor.nombre} : 'Nuevo Proveedor'">Proveedor</h1>
+            <a th:href="@{/proveedores}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form th:action="${proveedor.id} ? @{/proveedores/editar} : @{/proveedores/guardar}" 
+                      th:object="${proveedor}" method="post" id="proveedorForm">
+                    <input type="hidden" th:field="*{id}">
+                    
+                    <!-- Mensajes de error/éxito -->
+                    <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Por favor, corrige los errores en el formulario.
+                    </div>
+                    
+                    <div th:if="${param.success}" class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        Proveedor guardado exitosamente.
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="nombre" class="form-label">Nombre *</label>
+                            <input type="text" th:field="*{nombre}" 
+                                   class="form-control" 
+                                   th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid'"
+                                   id="nombre" 
+                                   placeholder="Ingrese el nombre del proveedor"
+                                   required
+                                   maxlength="100">
+                            <div th:if="${#fields.hasErrors('nombre')}" class="invalid-feedback">
+                                <span th:errors="*{nombre}"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ruc" class="form-label">RUC *</label>
+                            <input type="text" th:field="*{ruc}" 
+                                   class="form-control" 
+                                   th:classappend="${#fields.hasErrors('ruc')} ? 'is-invalid'"
+                                   id="ruc" 
+                                   placeholder="Ingrese el RUC (11 dígitos)"
+                                   required 
+                                   maxlength="11"
+                                   pattern="[0-9]{11}"
+                                   title="El RUC debe contener exactamente 11 dígitos">
+                            <div th:if="${#fields.hasErrors('ruc')}" class="invalid-feedback">
+                                <span th:errors="*{ruc}"></span>
+                            </div>
+                            <div class="form-text">11 dígitos numéricos</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="telefono" class="form-label">Teléfono *</label>
+                            <input type="tel" th:field="*{telefono}" 
+                                   class="form-control" 
+                                   th:classappend="${#fields.hasErrors('telefono')} ? 'is-invalid'"
+                                   id="telefono" 
+                                   placeholder="Ej: +51 123 456 789"
+                                   required
+                                   maxlength="20">
+                            <div th:if="${#fields.hasErrors('telefono')}" class="invalid-feedback">
+                                <span th:errors="*{telefono}"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" th:field="*{email}" 
+                                   class="form-control" 
+                                   th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"
+                                   id="email" 
+                                   placeholder="proveedor@empresa.com"
+                                   required
+                                   maxlength="100">
+                            <div th:if="${#fields.hasErrors('email')}" class="invalid-feedback">
+                                <span th:errors="*{email}"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="direccion" class="form-label">Dirección *</label>
+                        <textarea th:field="*{direccion}" 
+                                  class="form-control" 
+                                  th:classappend="${#fields.hasErrors('direccion')} ? 'is-invalid'"
+                                  id="direccion" 
+                                  rows="3" 
+                                  required
+                                  placeholder="Dirección completa del proveedor..."
+                                  maxlength="255"></textarea>
+                        <div th:if="${#fields.hasErrors('direccion')}" class="invalid-feedback">
+                            <span th:errors="*{direccion}"></span>
+                        </div>
+                        <div class="form-text">
+                            <span id="direccion-counter">0</span>/255 caracteres
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end border-top pt-3">
+                        <a th:href="@{/proveedores}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas" th:classappend="${proveedor.id} ? 'fa-save' : 'fa-plus'"></i>
+                            <span th:text="${proveedor.id} ? ' Actualizar' : ' Guardar'"></span> Proveedor
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    
+    <!-- Scripts personalizados -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Contador de caracteres para dirección
+            const direccionTextarea = document.getElementById('direccion');
+            const counterElement = document.getElementById('direccion-counter');
+            
+            if (direccionTextarea && counterElement) {
+                // Actualizar contador inicial
+                counterElement.textContent = direccionTextarea.value.length;
+                
+                // Actualizar contador mientras se escribe
+                direccionTextarea.addEventListener('input', function() {
+                    counterElement.textContent = this.value.length;
+                });
+            }
+            
+            // Validación de RUC
+            const rucInput = document.getElementById('ruc');
+            if (rucInput) {
+                rucInput.addEventListener('input', function() {
+                    // Solo permitir números
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    
+                    // Validar longitud
+                    if (this.value.length > 11) {
+                        this.value = this.value.slice(0, 11);
+                    }
+                });
+            }
+            
+            // Validación de formulario
+            const form = document.getElementById('proveedorForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const nombre = document.getElementById('nombre').value.trim();
+                    const ruc = document.getElementById('ruc').value.trim();
+                    const telefono = document.getElementById('telefono').value.trim();
+                    const email = document.getElementById('email').value.trim();
+                    const direccion = document.getElementById('direccion').value.trim();
+                    
+                    let isValid = true;
+                    let errorMessage = '';
+                    
+                    if (!nombre) {
+                        isValid = false;
+                        errorMessage = 'Por favor, ingrese el nombre del proveedor.';
+                    } else if (!ruc || ruc.length !== 11) {
+                        isValid = false;
+                        errorMessage = 'El RUC debe contener exactamente 11 dígitos.';
+                    } else if (!telefono) {
+                        isValid = false;
+                        errorMessage = 'Por favor, ingrese el teléfono del proveedor.';
+                    } else if (!email) {
+                        isValid = false;
+                        errorMessage = 'Por favor, ingrese el email del proveedor.';
+                    } else if (!direccion) {
+                        isValid = false;
+                        errorMessage = 'Por favor, ingrese la dirección del proveedor.';
+                    }
+                    
+                    if (!isValid) {
+                        e.preventDefault();
+                        alert(errorMessage);
+                    }
+                });
+            }
+            
+            // Auto-focus en el campo nombre
+            const nombreField = document.getElementById('nombre');
+            if (nombreField && !nombreField.value) {
+                nombreField.focus();
+            }
+        });
+    </script>
+</body>
+</html>

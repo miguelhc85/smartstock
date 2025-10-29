@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(~{::title}, ~{::head}, ~{::body})}">
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Dashboard</h1>
+            <span class="text-muted" th:text="'Hoy: ' + ${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy')}"></span>
+        </div>
+
+        <!-- Métricas -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-white bg-primary dashboard-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="metric-value" th:text="${totalProductos}">0</h4>
+                                <p class="metric-label mb-0">Total Productos</p>
+                            </div>
+                            <div class="align-self-center">
+                                <span style="font-size: 2rem;">📦</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-warning dashboard-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="metric-value" th:text="${productosStockBajo}">0</h4>
+                                <p class="metric-label mb-0">Stock Bajo</p>
+                            </div>
+                            <div class="align-self-center">
+                                <span style="font-size: 2rem;">⚠️</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-success dashboard-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="metric-value" th:text="'S/ ' + ${#numbers.formatDecimal(totalVentasMes, 1, 2)}">0</h4>
+                                <p class="metric-label mb-0">Ventas del Mes</p>
+                            </div>
+                            <div class="align-self-center">
+                                <span style="font-size: 2rem;">📈</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Acciones Rápidas</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/productos/nuevo}" class="btn btn-outline-primary">
+                                Agregar Producto
+                            </a>
+                            <a th:href="@{/ventas/nueva}" class="btn btn-outline-success">
+                                Nueva Venta
+                            </a>
+                            <a th:href="@{/productos/stock-bajo}" class="btn btn-outline-warning">
+                                Ver Stock Bajo
+                            </a>
+                            <a th:href="@{/reportes/inventario}" class="btn btn-outline-info">
+                                Reporte Inventario
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Enlaces Directos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a th:href="@{/productos}" class="list-group-item list-group-item-action">
+                                Gestión de Productos
+                            </a>
+                            <a th:href="@{/categorias}" class="list-group-item list-group-item-action">
+                                Categorías
+                            </a>
+                            <a th:href="@{/marcas}" class="list-group-item list-group-item-action">
+                                Marcas
+                            </a>
+                            <a th:href="@{/proveedores}" class="list-group-item list-group-item-action">
+                                Proveedores
+                            </a>
+                            <a th:href="@{/ventas}" class="list-group-item list-group-item-action">
+                                Historial de Ventas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proveedores - SmartStock</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+	
+	<!-- Navbar -->
+		    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+		        <div class="container">
+		            <a class="navbar-brand" th:href="@{/dashboard}">SmartStock</a>
+		            <div class="collapse navbar-collapse">
+		                <ul class="navbar-nav me-auto">
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/dashboard}">Dashboard</a></li>
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/productos}">Productos</a></li>
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/categorias}">Categorías</a></li>
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/marcas}">Marcas</a></li>
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/proveedores}">Proveedores</a></li>
+		                    <li class="nav-item"><a class="nav-link" th:href="@{/ventas}">Ventas</a></li>
+		                </ul>
+		                <form th:action="@{/logout}" method="post" class="d-inline">
+		                    <button type="submit" class="btn btn-outline-light btn-sm">Cerrar Sesión</button>
+		                </form>
+		            </div>
+		        </div>
+		    </nav>
+	
+    <div layout:fragment="content">
+        <!-- Alertas de éxito -->
+        <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${param.success == 'create' ? 'Proveedor creado exitosamente.' : 
+                            param.success == 'update' ? 'Proveedor actualizado exitosamente.' : 
+                            param.success == 'delete' ? 'Proveedor eliminado exitosamente.' : 
+                            'Operación completada exitosamente.'}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Gestión de Proveedores</h1>
+            <a th:href="@{/proveedores/nuevo}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Nuevo Proveedor
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <!-- Filtros y búsqueda -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" placeholder="Buscar proveedores..." id="searchInput">
+                            <button class="btn btn-outline-secondary" type="button" id="clearSearch" title="Limpiar búsqueda">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <span class="text-muted" id="resultCount">
+                            <span th:text="${#lists.size(proveedores)}">0</span> proveedores encontrados
+                        </span>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="proveedoresTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>RUC</th>
+                                <th>Teléfono</th>
+                                <th>Email</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="proveedor : ${proveedores}">
+                                <td th:text="${proveedor.id}"></td>
+                                <td>
+                                    <strong th:text="${proveedor.nombre}"></strong>
+                                </td>
+                                <td>
+                                    <code th:text="${proveedor.ruc}"></code>
+                                </td>
+                                <td>
+                                    <a th:href="'tel:' + ${proveedor.telefono}" class="text-decoration-none">
+                                        <i class="fas fa-phone me-1 text-muted"></i>
+                                        <span th:text="${proveedor.telefono}"></span>
+                                    </a>
+                                </td>
+                                <td>
+                                    <a th:href="'mailto:' + ${proveedor.email}" class="text-decoration-none">
+                                        <i class="fas fa-envelope me-1 text-muted"></i>
+                                        <span th:text="${proveedor.email}"></span>
+                                    </a>
+                                </td>
+                                <td>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a th:href="@{/proveedores/editar/{id}(id=${proveedor.id})}" 
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Editar proveedor">
+                                            <i class="fas fa-edit"></i>
+                                            <span class="d-none d-md-inline"> Editar</span>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger"
+                                                th:data-id="${proveedor.id}"
+                                                th:data-name="${proveedor.nombre}"
+                                                onclick="confirmDelete(this)"
+                                                title="Eliminar proveedor">
+                                            <i class="fas fa-trash"></i>
+                                            <span class="d-none d-md-inline"> Eliminar</span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(proveedores)}">
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <i class="fas fa-truck fa-3x mb-3 text-muted"></i>
+                                    <h5>No se encontraron proveedores</h5>
+                                    <p class="text-muted">Comienza agregando un nuevo proveedor al sistema.</p>
+                                    <a th:href="@{/proveedores/nuevo}" class="btn btn-primary mt-2">
+                                        <i class="fas fa-plus me-2"></i> Crear Primer Proveedor
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación de eliminación -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro de eliminar al proveedor "<strong id="deleteProveedorName"></strong>"?</p>
+                    <p class="text-danger small">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Esta acción no se puede deshacer y podría afectar a productos asociados.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <a id="deleteConfirmBtn" href="#" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i> Eliminar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    
+    <!-- Scripts personalizados -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Función para búsqueda en tiempo real
+            const searchInput = document.getElementById('searchInput');
+            const clearSearch = document.getElementById('clearSearch');
+            const table = document.getElementById('proveedoresTable');
+            const resultCount = document.getElementById('resultCount');
+            
+            if (searchInput && table) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const rows = table.querySelectorAll('tbody tr');
+                    let visibleCount = 0;
+                    
+                    rows.forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        if (text.includes(searchTerm)) {
+                            row.style.display = '';
+                            visibleCount++;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                    
+                    resultCount.textContent = visibleCount + ' proveedores encontrados';
+                });
+                
+                // Limpiar búsqueda
+                clearSearch.addEventListener('click', function() {
+                    searchInput.value = '';
+                    searchInput.dispatchEvent(new Event('input'));
+                    searchInput.focus();
+                });
+            }
+            
+            // Auto-ocultar alertas después de 5 segundos
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    if (alert) {
+                        const bsAlert = new bootstrap.Alert(alert);
+                        bsAlert.close();
+                    }
+                }, 5000);
+            });
+        });
+        
+        // Función de confirmación de eliminación mejorada
+        function confirmDelete(button) {
+            const proveedorId = button.getAttribute('data-id');
+            const proveedorName = button.getAttribute('data-name');
+            
+            document.getElementById('deleteProveedorName').textContent = proveedorName;
+            document.getElementById('deleteConfirmBtn').href = `/proveedores/eliminar/${proveedorId}`;
+            
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }
+    </script>
+</body>
+</html>

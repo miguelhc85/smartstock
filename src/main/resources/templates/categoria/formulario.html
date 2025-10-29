@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${categoria.id} ? 'Editar ' + ${categoria.nombre} : 'Nueva Categoría'">Categoría</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+	
+	<!-- Navbar -->
+	    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+	        <div class="container">
+	            <a class="navbar-brand" th:href="@{/dashboard}">SmartStock</a>
+	            <div class="collapse navbar-collapse">
+	                <ul class="navbar-nav me-auto">
+	                    <li class="nav-item"><a class="nav-link" th:href="@{/dashboard}">Dashboard</a></li>
+	                    <li class="nav-item"><a class="nav-link" th:href="@{/productos}">Productos</a></li>
+	                    <li class="nav-item"><a class="nav-link" th:href="@{/categorias}">Categorías</a></li>
+	                    <li class="nav-item"><a class="nav-link" th:href="@{/marcas}">Marcas</a></li>
+	                    <li class="nav-item"><a class="nav-link" th:href="@{/proveedores}">Proveedores</a></li>
+	                    <li class="nav-item"><a class="nav-link" th:href="@{/ventas}">Ventas</a></li>
+	                </ul>
+	                <form th:action="@{/logout}" method="post" class="d-inline">
+	                    <button type="submit" class="btn btn-outline-light btn-sm">Cerrar Sesión</button>
+	                </form>
+	            </div>
+	        </div>
+	    </nav>
+	
+    <div layout:fragment="content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 th:text="${categoria.id} ? 'Editar ' + ${categoria.nombre} : 'Nueva Categoría'">Categoría</h1>
+            <a th:href="@{/categorias}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form th:action="${categoria.id} ? @{/categorias/editar} : @{/categorias/guardar}" 
+                      th:object="${categoria}" method="post">
+                    <input type="hidden" th:field="*{id}">
+                    
+                    <!-- Mensajes de error/éxito -->
+                    <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Por favor, corrige los errores en el formulario.
+                    </div>
+                    
+                    <div th:if="${param.success}" class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        Categoría guardada exitosamente.
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="nombre" class="form-label">Nombre *</label>
+                            <input type="text" th:field="*{nombre}" 
+                                   class="form-control" 
+                                   th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid'"
+                                   id="nombre" 
+                                   placeholder="Ingrese el nombre de la categoría"
+                                   required
+                                   maxlength="100">
+                            <div th:if="${#fields.hasErrors('nombre')}" class="invalid-feedback">
+                                <span th:errors="*{nombre}"></span>
+                            </div>
+                            <div class="form-text">Nombre único de la categoría (máx. 100 caracteres)</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <textarea th:field="*{descripcion}" 
+                                  class="form-control" 
+                                  id="descripcion" 
+                                  rows="4" 
+                                  placeholder="Descripción opcional de la categoría..."
+                                  maxlength="255"></textarea>
+                        <div class="form-text">
+                            <span id="descripcion-counter">0</span>/255 caracteres
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end border-top pt-3">
+                        <a th:href="@{/categorias}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas" th:classappend="${categoria.id} ? 'fa-save' : 'fa-plus'"></i>
+                            <span th:text="${categoria.id} ? ' Actualizar' : ' Guardar'"></span> Categoría
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    
+    <!-- Scripts personalizados -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Contador de caracteres para descripción
+            const descripcionTextarea = document.getElementById('descripcion');
+            const counterElement = document.getElementById('descripcion-counter');
+            
+            if (descripcionTextarea && counterElement) {
+                // Actualizar contador inicial
+                counterElement.textContent = descripcionTextarea.value.length;
+                
+                // Actualizar contador mientras se escribe
+                descripcionTextarea.addEventListener('input', function() {
+                    counterElement.textContent = this.value.length;
+                });
+            }
+            
+            // Validación de formulario
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const nombre = document.getElementById('nombre').value.trim();
+                    if (!nombre) {
+                        e.preventDefault();
+                        alert('Por favor, ingrese un nombre para la categoría.');
+                        document.getElementById('nombre').focus();
+                    }
+                });
+            }
+            
+            // Auto-focus en el campo nombre
+            const nombreField = document.getElementById('nombre');
+            if (nombreField && !nombreField.value) {
+                nombreField.focus();
+            }
+        });
+    </script>
+</body>
+</html>

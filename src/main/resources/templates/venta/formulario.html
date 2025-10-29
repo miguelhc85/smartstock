@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Venta - SmartStock</title>
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/dashboard}">SmartStock</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" th:href="@{/dashboard}">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/productos}">Productos</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/ventas}">Ventas</a></li>
+                </ul>
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-light btn-sm">Cerrar Sesión</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Nueva Venta</h1>
+            <a th:href="@{/ventas}" class="btn btn-secondary">← Volver a Ventas</a>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form th:action="@{/ventas/guardar}" th:object="${venta}" method="post">
+                    <input type="hidden" th:field="*{id}">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Número de Venta</label>
+                            <input type="text" th:field="*{numeroVenta}" class="form-control" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Cliente *</label>
+                            <input type="text" th:field="*{cliente}" class="form-control" placeholder="Nombre del cliente" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Agregar Productos</h5>
+                        <div class="border p-3 rounded bg-light">
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <label class="form-label">Producto</label>
+                                    <select id="selectProducto" class="form-select">
+                                        <option value="">Seleccionar producto</option>
+                                        <option th:each="producto : ${productos}" 
+                                                th:value="${producto.id}"
+                                                th:data-precio="${producto.precio}"
+                                                th:data-stock="${producto.stock}"
+                                                th:text="${producto.nombre + ' - S/ ' + producto.precio + ' (Stock: ' + producto.stock + ')'}">
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Cantidad</label>
+                                    <input type="number" id="inputCantidad" class="form-control" min="1" value="1">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Precio Unitario</label>
+                                    <input type="number" id="inputPrecio" class="form-control" step="0.01" min="0" readonly>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="button" class="btn btn-success w-100" onclick="agregarProducto()">Agregar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Productos en la Venta</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="tablaDetalles">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th width="100">Cantidad</th>
+                                        <th width="120">Precio Unit.</th>
+                                        <th width="120">Subtotal</th>
+                                        <th width="80">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cuerpoDetalles">
+                                    <!-- Los detalles se agregarán aquí -->
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-success">
+                                        <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                        <td colspan="2">
+                                            <strong id="totalVenta">S/ 0.00</strong>
+                                            <input type="hidden" th:field="*{total}" id="inputTotal">
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a th:href="@{/ventas}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary" id="btnGuardar" disabled>Registrar Venta</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-light mt-5 py-3">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2024 SmartStock</p>
+        </div>
+    </footer>
+
+    <script th:src="@{/js/jquery-3.6.0.min.js}"></script>
+    <script th:src="@{/js/bootstrap.min.js}"></script>
+    <script>
+    // JavaScript para manejar la venta
+    let detalles = [];
+    let totalVenta = 0;
+
+    function agregarProducto() {
+        const select = document.getElementById('selectProducto');
+        const cantidadInput = document.getElementById('inputCantidad');
+        const precioInput = document.getElementById('inputPrecio');
+        
+        const productoId = select.value;
+        const productoNombre = select.options[select.selectedIndex].text.split(' - ')[0];
+        const cantidad = parseInt(cantidadInput.value);
+        const precio = parseFloat(precioInput.value);
+        const stock = parseInt(select.options[select.selectedIndex].getAttribute('data-stock'));
+        
+        if (!productoId || cantidad <= 0) {
+            alert('Seleccione un producto y una cantidad válida');
+            return;
+        }
+        
+        if (cantidad > stock) {
+            alert('No hay suficiente stock disponible');
+            return;
+        }
+        
+        const subtotal = cantidad * precio;
+        
+        detalles.push({
+            productoId: productoId,
+            productoNombre: productoNombre,
+            cantidad: cantidad,
+            precioUnitario: precio,
+            subtotal: subtotal
+        });
+        
+        actualizarTablaDetalles();
+        calcularTotal();
+        limpiarFormularioProducto();
+    }
+
+    function actualizarTablaDetalles() {
+        const cuerpo = document.getElementById('cuerpoDetalles');
+        cuerpo.innerHTML = '';
+        
+        detalles.forEach((detalle, index) => {
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                <td>${detalle.productoNombre}</td>
+                <td>${detalle.cantidad}</td>
+                <td>S/ ${detalle.precioUnitario.toFixed(2)}</td>
+                <td>S/ ${detalle.subtotal.toFixed(2)}</td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="eliminarProducto(${index})">Eliminar</button>
+                </td>
+            `;
+            cuerpo.appendChild(fila);
+        });
+    }
+
+    function eliminarProducto(index) {
+        detalles.splice(index, 1);
+        actualizarTablaDetalles();
+        calcularTotal();
+    }
+
+    function calcularTotal() {
+        totalVenta = detalles.reduce((sum, detalle) => sum + detalle.subtotal, 0);
+        document.getElementById('totalVenta').textContent = `S/ ${totalVenta.toFixed(2)}`;
+        document.getElementById('inputTotal').value = totalVenta;
+        document.getElementById('btnGuardar').disabled = detalles.length === 0;
+    }
+
+    function limpiarFormularioProducto() {
+        document.getElementById('selectProducto').value = '';
+        document.getElementById('inputCantidad').value = 1;
+        document.getElementById('inputPrecio').value = '';
+    }
+
+    // Event listeners
+    document.getElementById('selectProducto').addEventListener('change', function() {
+        const precio = this.options[this.selectedIndex].getAttribute('data-precio');
+        document.getElementById('inputPrecio').value = precio || '';
+    });
+
+    // Inicializar número de venta
+    document.addEventListener('DOMContentLoaded', function() {
+        const numeroVenta = document.getElementById('numeroVenta').value;
+        if (!numeroVenta) {
+            const fecha = new Date().toISOString().slice(0,10).replace(/-/g, '');
+            document.getElementById('numeroVenta').value = 'VTA-' + fecha + '-001';
+        }
+    });
+    </script>
+</body>
+</html>
