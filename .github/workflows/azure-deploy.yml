@@ -1,12 +1,17 @@
-name: Deploy SmartStock to Azure
+name: Deploy to Azure Web App
 
 on:
   push:
     branches: [ "main" ]
 
+env:
+  AZURE_WEBAPP_NAME: 'smartstock-app-miguelhc'
+  JAVA_VERSION: '17'
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: 'production'
     
     steps:
     - name: Checkout code
